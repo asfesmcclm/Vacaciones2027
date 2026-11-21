@@ -1,0 +1,306 @@
+SISTEMA DE GESTIÓN DE
+VACACIONES, AUSENCIAS E INFORMES
+Equipo FeSMC UGT Castilla-La Mancha
+FICHA TÉCNICA Y PROPUESTA DE ESTRUCTURA DE DATOS
+Versión 2.3 · 20 de noviembre de 2026
+Documento de trabajo · Requisitos funcionales y diseño técnico preliminar
+
+
+Control del documento
+Elemento	Descripción
+Proyecto	Sistema de gestión de vacaciones, ausencias e informes del equipo FeSMC UGT Castilla-La Mancha
+Versión	2.3
+Fecha	20 de noviembre de 2026
+Estado	Ficha funcional consolidada y propuesta preliminar de estructura de Google Sheets
+Tecnología propuesta	Aplicación web servida desde Google Apps Script (HtmlService) + Google Sheets + Google Drive + GitHub (repositorio y clasp)
+Acceso	Administración privada; varios administradores
+
+Este documento recoge los requisitos acordados hasta la fecha. Los datos o reglas no confirmados se identifican expresamente como pendientes y no deben convertirse en reglas automáticas hasta su validación.
+1. Objetivo y alcance
+Desarrollar una aplicación web propia para administrar de forma centralizada las vacaciones, los días de libre disposición y otras ausencias del personal de FeSMC UGT Castilla-La Mancha. La aplicación ofrecerá una zona privada de administración, un dashboard de consulta reservado a administración, fichas individuales, calendarios, histórico de movimientos y generación de informes.
+Gestionar una plantilla distribuida por las cinco provincias de Castilla-La Mancha.
+Registrar y controlar vacaciones y días de libre disposición.
+Registrar bajas, permisos y otras ausencias con protección de la información privada.
+Calcular automáticamente días hábiles y saldos conforme a los calendarios y reglas configuradas.
+Consultar la disponibilidad general e individual.
+Conservar un histórico de altas, modificaciones y anulaciones.
+Generar informes individuales y generales, incluidos informes con fecha de corte histórica.
+Mantener ejercicios sucesivos y conservar la información de años anteriores.
+2. Plantilla inicial: datos reales
+Provincia	Trabajador/a
+Albacete	RAUL MAS
+Albacete	JUAN LORENZO
+Toledo	VICTOR SANCHEZ
+Toledo	SILVIA BONILLA
+Cuenca	MARIA CINTAS
+Guadalajara	MARIA DEL MAR ALIQUE
+Ciudad Real	PRADO
+Ciudad Real	IGNACIO COTILLAS
+
+Total inicial: 8 trabajadores en 5 provincias.
+La plantilla será dinámica. La administración podrá dar de alta trabajadores, modificar sus datos, asignar provincia y municipio, registrar fecha de incorporación y archivar o desactivar personas. No se eliminarán físicamente los registros de quienes dejen de formar parte del equipo; se conservará su histórico.
+Los nombres anteriores se incorporan tal como han sido facilitados. No se inventarán apellidos adicionales ni municipios.
+3. Reglas de vacaciones y libre disposición
+Concepto	Asignación anual de referencia	Regla
+Vacaciones	25 días hábiles	Incluyen los días 24 y 31 de diciembre.
+Libre disposición	3 días	Saldo y contador independientes de vacaciones.
+Total	28 días	25 días de vacaciones + 3 días de libre disposición.
+
+3.1. Días 24 y 31 de diciembre
+Los días 24 y 31 de diciembre son días de cierre y forman parte de los 25 días de vacaciones; no son días adicionales. Si son laborables, se registran como cierre y descuentan un día de vacaciones a cada persona activa. Si caen en sábado, domingo o festivo aplicable, no desaparecen del saldo: se trasladan a una fecha cercana y el descuento se aplica sobre esa fecha efectiva.
+La fecha sustitutiva la decide la confederación (a nivel confederal, fuera de Castilla-La Mancha). La aplicación no calcula ni propone esa fecha: la registra con su fuente (circular, acuerdo o comunicación), fecha de la comunicación y administrador que la introduce. Mientras no conste, el cierre queda en estado pendiente y los saldos e informes del ejercicio se marcan como provisionales.
+Al confirmar la fecha, el sistema registra el cierre a toda la plantilla activa en esa fecha, con tipo propio «cierre», distinto de las vacaciones elegidas. Anular un cierre individual exige permiso de administración y motivo. Si la fecha confirmada coincide con un festivo local de alguna persona, la aplicación avisa, pero permite continuar. Si la confederación modifica una fecha ya registrada, se anula el cierre anterior y se crea uno nuevo, con su movimiento en el histórico.
+Efecto en el saldo: días libremente disfrutables = 25 − días de cierre del ejercicio. En 2027 ambos días caen en viernes (laborables), por lo que quedan 23 días libres.
+3.2. Registro y cálculo
+Registrar periodos completos o días sueltos.
+Calcular automáticamente los días hábiles descontables.
+Actualizar días asignados, consumidos y pendientes.
+Permitir modificaciones y anulaciones con trazabilidad.
+Evitar dobles descuentos cuando una fecha coincida con más de una condición no laborable.
+3.3. Incorporaciones durante el año
+Decisión confirmada: los saldos de las nuevas incorporaciones se establecerán manualmente por administración. La aplicación deberá permitir asignar y registrar los saldos individualizados, dejando constancia de quién los configuró y cuándo.
+3.4. Periodos que cruzan ejercicios
+Pendiente de definir cómo se distribuye el consumo de vacaciones entre dos ejercicios cuando un periodo cruza de diciembre a enero. Hasta que se acuerde esta regla, no debe programarse un criterio automático definitivo.
+Propuesta por defecto, pendiente de validar: imputar cada día al ejercicio de su propia fecha, de modo que coincida con el calendario aplicado a cada fecha. Los cierres de diciembre se imputarían al ejercicio del día original (24 o 31 de diciembre) aunque la fecha sustitutiva caiga en otro año.
+4. Calendarios laborales y festivos
+Cada ejercicio dispondrá de su propio calendario. El sistema distinguirá festivos nacionales, autonómicos de Castilla-La Mancha y locales por municipio.
+4.1. Calendario de referencia 2027 facilitado
+Fecha	Festividad
+1 de enero	Año Nuevo
+6 de enero	Epifanía del Señor
+25 de marzo	Jueves Santo
+26 de marzo	Viernes Santo
+1 de mayo	Fiesta del Trabajo
+27 de mayo	Corpus Christi
+31 de mayo	Día de Castilla-La Mancha
+12 de octubre	Fiesta Nacional de España
+1 de noviembre	Todos los Santos
+6 de diciembre	Día de la Constitución Española
+8 de diciembre	Inmaculada Concepción
+25 de diciembre	Natividad del Señor
+
+El calendario laboral de 2027 de Castilla-La Mancha está publicado oficialmente (Decreto 34/2026, de 23 de junio, DOCM de 13 de julio de 2026). Las fechas facilitadas deben contrastarse con el texto del decreto antes de utilizarlas para cálculos definitivos; el calendario se cargará desde esa fuente.
+4.2. Festivos locales
+Cada trabajador tendrá asignado un municipio de referencia, que será el del centro de trabajo, no el de residencia, y dos festivos locales por ejercicio. Los municipios están pendientes de facilitar. No se supondrá que todos los trabajadores de una misma provincia comparten los mismos festivos.
+4.3. Cálculo de días hábiles
+1.Identificar todas las fechas incluidas en el periodo.
+2.Consultar el calendario correspondiente al trabajador y al ejercicio de cada fecha.
+3.Excluir sábados, domingos y festivos aplicables.
+4.Aplicar los cierres de 24 y 31 de diciembre según su fecha efectiva (apartado 3.1).
+5.Calcular los días descontables y actualizar el saldo.
+6.Guardar la operación y el resultado del cálculo en el histórico.
+5. Otras ausencias
+Tipo	Descuento de saldo	Efecto en disponibilidad
+Vacaciones	Sí, del saldo vacacional	Sí
+Libre disposición	Sí, de su saldo propio	Sí
+Incapacidad temporal	No	Sí
+Permiso retribuido	Según regla aplicable	Sí
+Permiso no retribuido	Según regla aplicable	Sí
+Otras ausencias	Configurable	Sí
+
+El administrador podrá registrar trabajador, tipo de ausencia, fechas de inicio y fin, estado y observaciones administrativas. Las bajas médicas y datos de salud requieren especial protección: no se almacenarán diagnósticos ni motivos médicos si no son necesarios; el dashboard no mostrará información médica y el acceso a esos registros quedará restringido a administradores autorizados.
+Control de solapes: la aplicación avisará cuando un periodo de vacaciones, libre disposición o ausencia coincida con otro registro de la misma persona. Si una incapacidad temporal coincide con vacaciones ya registradas, avisará de que puede corresponder disfrutarlas en otro momento (art. 38.3 ET); la decisión la toma administración.
+Protección de datos: en la primera versión la ausencia por incapacidad temporal se registrará como categoría neutra («ausencia»), sin motivo ni diagnóstico. Los datos de salud son categoría especial (art. 9 RGPD); se documentará el tratamiento y quién accede a cada categoría.
+6. Área privada de administración
+Personal: altas, edición, provincia, municipio, fecha de incorporación, estado activo/inactivo y archivo.
+Vacaciones: altas, modificaciones, anulaciones y consulta de saldos.
+Libre disposición: registro, modificaciones y saldo independiente.
+Otras ausencias: registro y consulta restringida según permisos.
+Calendarios: ejercicios, festivos nacionales, autonómicos y locales.
+Histórico: consulta de movimientos y auditoría.
+Informes: generación, descarga y registro de documentos.
+Configuración: saldos, reglas de cómputo, tipos de ausencia y permisos.
+7. Dashboard general de administración
+El dashboard será privado y accesible únicamente a administradores. No habrá dashboard público ni acceso de consulta para trabajadores en la primera versión.
+Número de trabajadores activos.
+Personas de vacaciones en la fecha actual.
+Personas disponibles, conforme a los tipos de ausencia configurados.
+Próximas vacaciones y ausencias.
+Calendario general mensual y anual.
+Vista por provincias.
+Filtros por persona, provincia, ejercicio y tipo de ausencia.
+Últimos movimientos del histórico.
+Avisos configurables de coincidencia de ausencias entre personas (por ejemplo, dentro de una misma provincia con más de una persona).
+La pantalla general no mostrará detalles médicos ni otra información especialmente protegida. La disponibilidad podrá reflejarse de forma agregada o mediante categorías neutras.
+8. Ficha individual de trabajador
+Cada trabajador dispondrá de una ficha generada dinámicamente desde la plantilla. Incluirá:
+Datos personales y administrativos, provincia y municipio.
+Fecha de incorporación y estado.
+Calendario individual y festivos aplicables.
+Vacaciones asignadas, consumidas y pendientes.
+Libre disposición asignado, utilizado y pendiente.
+Relación de periodos registrados y próximos periodos.
+Otras ausencias, de acuerdo con los permisos del administrador.
+Histórico de movimientos.
+Acceso a generación de informes individuales.
+9. Módulo de informes
+La aplicación deberá generar informes individuales y generales. No se limitará a exportar una lista: permitirá documentar la planificación y reconstruir el estado que existía en una fecha pasada.
+9.1. Informe individual
+Nombre, provincia y municipio.
+Fecha de incorporación, cuando proceda.
+Ejercicio y periodo consultado.
+Fecha y hora de generación del informe.
+Fecha de corte, si se solicita.
+Vacaciones asignadas, disfrutadas y pendientes.
+Libre disposición asignado, utilizado y pendiente.
+Relación de periodos de vacaciones y días libres.
+Otras ausencias, solo si el administrador tiene autorización para verlas.
+Observaciones administrativas e histórico, cuando se solicite.
+9.2. Informes con fecha de corte
+Debe ser posible generar hoy un informe que refleje la situación de la planificación en una fecha anterior. La fecha de corte y la fecha de generación son datos distintos. Para reconstruir el estado histórico, la aplicación deberá utilizar el registro de movimientos y no limitarse a leer los datos actuales.
+La fecha de corte se aplica a la fecha de registro (qué constaba en el sistema ese día), no a las fechas de disfrute. Cada movimiento guardará el registro completo resultante, y el estado a una fecha se reconstruirá con el último movimiento de cada registro anterior al corte. Los días hábiles calculados se guardan en cada registro para que un cambio posterior de calendario no altere informes pasados.
+9.3. Tipos de informes
+Informe	Contenido
+Individual anual	Resumen completo de una persona y un ejercicio.
+Individual por periodo	Vacaciones y ausencias entre dos fechas.
+Estado a fecha de corte	Situación que tenía la planificación en una fecha concreta.
+Histórico individual	Anotaciones, modificaciones y anulaciones.
+Resumen provincial	Situación de los trabajadores de una provincia.
+Resumen general	Situación de toda la plantilla.
+Disponibilidad	Personas disponibles y ausentes en un periodo.
+Consumo de saldos	Días asignados, utilizados y pendientes.
+
+9.4. Formatos y archivo
+Formatos previstos: PDF, Excel y CSV. El PDF incluirá cabecera identificativa, trabajador o ámbito, provincia, ejercicio, periodo consultado, fecha de corte, fecha y hora de emisión, contenido y numeración de páginas cuando proceda. Los informes podrán archivarse en Google Drive.
+9.5. Registro de informes
+Cada informe generado tendrá identificador propio y quedará registrado con tipo, persona o ámbito, fecha de corte, periodo, fecha/hora de generación, administrador responsable y referencia al archivo generado. El registro permitirá localizar informes anteriores.
+Nota de diseño: para que un informe histórico sea fiable, cada operación deberá guardar los valores anteriores y nuevos y, cuando corresponda, una representación suficiente del estado afectado. Se recomienda conservar una copia o versión de los datos usados para informes especialmente relevantes.
+10. Histórico y auditoría
+Cada alta, modificación o anulación generará un movimiento independiente. El histórico será de solo lectura desde la interfaz ordinaria y no se borrarán físicamente las operaciones.
+Campo	Descripción
+movement_id	Identificador único del movimiento.
+timestamp	Fecha y hora automáticas.
+admin_id	Identificador del administrador responsable.
+worker_id	Trabajador afectado.
+province_snapshot	Provincia del trabajador en el momento del movimiento, si se necesita preservar contexto.
+absence_type	Tipo de ausencia o registro afectado.
+action	Alta, modificación o anulación.
+record_id	Identificador del registro original afectado.
+old_values	Valores anteriores, cuando existan.
+new_values	Valores nuevos o resultantes.
+notes	Observaciones opcionales.
+hash_prev	Huella de la fila anterior, para detectar alteraciones del histórico.
+
+Las anulaciones dejarán constancia de la operación y del registro anulado. El sistema deberá impedir que una modificación ordinaria sobrescriba el histórico anterior.
+11. Gestión de ejercicios
+Se podrán crear ejercicios sucesivos (2027, 2028, 2029 y siguientes). Cada ejercicio tendrá saldos, calendario laboral, festivos, vacaciones, libre disposición e informes. Los ejercicios cerrados permanecerán consultables.
+Los periodos que crucen de diciembre a enero utilizarán el calendario correspondiente a cada fecha. La regla de imputación del consumo entre ejercicios queda pendiente de decisión.
+12. Tecnología y arquitectura
+Tecnología	Función prevista
+Aplicación web	Interfaz privada: administración, dashboard, fichas, calendarios e informes.
+GitHub	Repositorio de código, control de versiones y documentación.
+Google Sheets	Almacenamiento estructurado de los datos del proyecto.
+Google Apps Script	Lógica de negocio, validaciones, cálculos, control de acceso e integración con Sheets.
+Google Drive	Archivo de informes PDF y copias de seguridad.
+
+Supabase no será necesario en la primera versión. Se podrá valorar una migración futura si aumentan las necesidades de seguridad, concurrencia, volumen o gestión de usuarios.
+La hoja de cálculo no será pública ni se expondrá directamente al navegador. La aplicación accederá a los datos a través de Apps Script con validación de permisos en el servidor. No se confiará únicamente en ocultar botones o pantallas para proteger operaciones.
+Aplicación servida desde el propio Apps Script (HtmlService), no desde un alojamiento externo, para identificar al administrador con su cuenta de Google y contrastarla con la pestaña ADMINISTRADORES en el servidor. GitHub se utiliza como repositorio (con clasp) y documentación. Toda escritura se protegerá con LockService y las lecturas se harán por lotes.
+Los costes pueden mantenerse en el nivel gratuito de los servicios mientras el uso esté dentro de sus cuotas y condiciones. Deben revisarse las cuotas vigentes de Apps Script y el almacenamiento disponible en Drive antes de la puesta en producción.
+13. Propuesta preliminar de estructura de Google Sheets
+Recomendación: definir el esquema antes de programar y generar las pestañas automáticamente mediante una función de inicialización de Apps Script. No se recomienda crear manualmente hojas independientes por trabajador. Se utilizarán tablas normalizadas, identificadores únicos y relaciones entre registros.
+La estructura siguiente es una propuesta técnica inicial para validar. Los nombres de campos podrán ajustarse durante el diseño detallado, pero cualquier cambio deberá documentarse.
+13.1. Pestañas propuestas
+Pestaña	Finalidad
+PERSONAL	Ficha maestra de cada trabajador.
+ADMINISTRADORES	Usuarios autorizados, estado y nivel de permisos.
+EJERCICIOS	Configuración de cada año.
+SALDOS	Asignaciones y ajustes de vacaciones y libre disposición por trabajador y ejercicio.
+VACACIONES	Registros de periodos de vacaciones.
+LIBRE_DISPOSICION	Registros de días o periodos de libre disposición.
+AUSENCIAS	Bajas, permisos y otras ausencias con acceso restringido.
+FESTIVOS	Festivos nacionales y autonómicos por ejercicio.
+FESTIVOS_LOCALES	Festivos locales por municipio y ejercicio.
+HISTORICO	Registro append-only de operaciones.
+INFORMES_GENERADOS	Registro de informes emitidos y ubicación de archivos.
+CONFIGURACION	Tipos, parámetros, reglas y catálogos.
+CIERRES	Fechas de cierre (24 y 31 de diciembre) por ejercicio, con fecha efectiva y fuente.
+
+13.2. Campos recomendados por pestaña
+PERSONAL
+worker_id; nombre; apellidos; provincia; municipio; fecha_incorporacion; estado; fecha_alta_sistema; fecha_baja; observaciones administrativas.
+ADMINISTRADORES
+admin_id; nombre_visible; email/cuenta autorizada; rol; estado; fecha_alta; fecha_baja. No almacenar contraseñas en Sheets.
+EJERCICIOS
+exercise_id; año; fecha_inicio; fecha_fin; estado; vacaciones_referencia; libre_disposicion_referencia; notas; validado_calendario.
+SALDOS
+balance_id; worker_id; exercise_id; concepto (vacaciones/libre_disposición); días_asignados; ajustes; motivo_ajuste; fecha_asignación; admin_id; observaciones.
+VACACIONES
+vacation_id; worker_id; exercise_id o ejercicios afectados; fecha_inicio; fecha_fin; días_hábiles_calculados; estado; observaciones; created_at; updated_at; created_by; updated_by.
+LIBRE_DISPOSICION
+leave_id; worker_id; exercise_id; fecha_inicio; fecha_fin; días_descontados; estado; observaciones; created_at; updated_at; created_by; updated_by.
+AUSENCIAS
+absence_id; worker_id; tipo_ausencia; fecha_inicio; fecha_fin; estado; afecta_disponibilidad; regla_descuento; observaciones mínimas; nivel_confidencialidad; created_at; updated_at; created_by; updated_by.
+FESTIVOS
+holiday_id; exercise_id; fecha; nombre; ámbito (nacional/autonómico); comunidad/ámbito territorial; activo; fuente/validación.
+FESTIVOS_LOCALES
+local_holiday_id; exercise_id; municipio; provincia; fecha; nombre; activo; fuente/validación.
+HISTORICO
+movement_id; timestamp; admin_id; worker_id; record_type; record_id; action; old_values; new_values; notes.
+INFORMES_GENERADOS
+report_id; tipo_informe; worker_id/ámbito; exercise_id; fecha_corte; periodo_inicio; periodo_fin; generated_at; admin_id; formato; drive_file_id; estado.
+CONFIGURACION
+config_key; config_value; descripción; vigencia_desde; vigencia_hasta; modified_at; modified_by.
+CIERRES
+closure_id; exercise_id; fecha_original; fecha_efectiva; motivo (laborable/sábado/domingo/festivo); estado (pendiente/confirmado/anulado); fuente; referencia; fecha_comunicacion; admin_id; created_at; updated_at.
+13.3. Reglas de diseño de los datos
+Cada entidad tendrá un identificador único estable; no se utilizará el número de fila como identificador.
+Los registros de vacaciones, ausencias y movimientos se relacionarán mediante worker_id y sus propios identificadores.
+Las fechas se almacenarán en formato de fecha consistente; las marcas temporales incluirán hora y zona horaria definida.
+Los estados se gestionarán mediante valores controlados (por ejemplo, activo, anulado, archivado), no mediante texto libre.
+Los registros anulados no se borrarán: conservarán su identificador y quedarán marcados como anulados, con movimiento de auditoría.
+El histórico será append-only desde la aplicación y cada fila incluirá la huella de la anterior. Solo la cuenta propietaria del script tendrá permiso de edición sobre la hoja. Las protecciones de hoja reducen modificaciones manuales accidentales, aunque no sustituyen permisos ni copias de seguridad.
+Los datos médicos se minimizarán y restringirán. No se guardarán diagnósticos en el sistema.
+Los cálculos de saldo deberán poder reproducirse a partir de registros, ajustes autorizados y reglas vigentes.
+13.4. ¿Se crea manualmente o automáticamente?
+La estructura se diseña y valida en esta ficha técnica; la construcción del proyecto generará el Google Sheets automáticamente. Un procedimiento de instalación en Apps Script creará las pestañas, encabezados, validaciones, formatos básicos, catálogos y parámetros iniciales. También comprobará si la estructura ya existe para evitar duplicar hojas o borrar datos en una reinstalación.
+La inicialización deberá ser idempotente: ejecutar el instalador más de una vez no deberá duplicar pestañas, reiniciar saldos ni eliminar registros. Las actualizaciones futuras del esquema se gestionarán mediante versiones de estructura y migraciones controladas.
+14. Seguridad, privacidad y copias
+Acceso exclusivamente administrativo en la primera versión.
+Varios administradores con cuentas individuales; no compartir credenciales.
+Identificar al administrador responsable de cada alta, modificación, anulación e informe.
+Validar permisos en el servidor de Apps Script para cada operación.
+No publicar el documento de Sheets ni exponer credenciales o claves en el código frontend.
+Restringir el acceso a bajas y datos especialmente protegidos.
+Minimizar los datos personales almacenados y establecer quién puede consultar cada categoría.
+Realizar copias de seguridad periódicas de la hoja y de los informes.
+Probar restauración de copias y conservación de históricos antes de la puesta en producción.
+15. Fases de desarrollo
+Fase	Trabajo previsto
+Fase 1. Cierre de requisitos	Resolver reglas pendientes, municipios, permisos y tratamiento de ejercicios.
+Fase 2. Diseño de datos	Validar pestañas, campos, identificadores, relaciones y estados.
+Fase 3. Infraestructura	Preparar Google Sheets, Apps Script, Drive y repositorio GitHub.
+Fase 4. Instalador de datos	Generar automáticamente las pestañas, encabezados, validaciones y configuración inicial.
+Fase 5. Operaciones principales	Personal, vacaciones, libre disposición, ausencias y calendarios.
+Fase 6. Cálculos y dashboard	Días hábiles, saldos, disponibilidad, vistas generales e individuales.
+Fase 7. Auditoría e informes	Histórico, reconstrucción a fecha de corte, PDF, Excel y CSV.
+Fase 8. Seguridad y pruebas	Permisos, privacidad, concurrencia, copias y pruebas de casos reales.
+Fase 9. Puesta en marcha	Carga validada de datos, formación de administradores y publicación privada.
+
+16. Decisiones pendientes
+Asunto	Estado actual
+Municipio de referencia de cada trabajador	Pendiente de facilitar.
+Dos festivos locales por trabajador y ejercicio	Pendiente de municipios y calendario oficial.
+Imputación de vacaciones cuando cruzan ejercicios	Pendiente de validar la propuesta del apartado 3.4.
+Permisos diferenciados entre administradores	Pendiente: decidir si todos tendrán los mismos permisos o habrá roles.
+Validación del calendario 2027	Calendario oficial publicado (DOCM 13/07/2026): contrastar las fechas con el decreto.
+Reglas concretas de permisos retribuidos/no retribuidos	Pendiente de configuración según criterios aplicables.
+Estados de los registros	Pendiente de definir (por ejemplo: planificada, disfrutada, anulada).
+Arrastre de saldos al cerrar el ejercicio	Pendiente: caducidad, traslado al año siguiente o plazo.
+Reducciones de jornada y otros ajustes de cómputo	Pendiente de confirmar si existen.
+Avisos de cobertura entre personas	Pendiente de definir criterios.
+
+Decisiones ya confirmadas: los días 24 y 31 de diciembre son días de cierre incluidos en los 25 días de vacaciones; si caen en fin de semana o festivo, la confederación fija la fecha sustitutiva y la aplicación la registra con su fuente; las incorporaciones tendrán saldos asignados manualmente; el dashboard será solo de administración; habrá varios administradores.
+17. Resultado esperado
+Consultar en un único lugar la planificación y disponibilidad del equipo.
+Gestionar vacaciones, libre disposición y otras ausencias.
+Consultar saldos y calendarios por persona, provincia y ejercicio.
+Conservar un histórico completo de anotaciones y modificaciones.
+Generar informes individuales y generales, incluidos informes a fecha de corte.
+Exportar informes y conservarlos en Drive.
+Incorporar trabajadores y nuevos ejercicios sin reconstruir la aplicación.
+Mantener una arquitectura económica y ampliable.
+18. Recomendación técnica final
+La arquitectura inicial recomendada es Google Sheets + Google Apps Script + aplicación web propia + Google Drive + GitHub. Para el tamaño inicial de la plantilla, esta solución puede ser suficiente y evita introducir desde el principio una base de datos adicional.
+La prioridad técnica debe ser la integridad del histórico, la reconstrucción de informes a fecha de corte, la seguridad de los datos y la correcta aplicación de los calendarios y saldos. La estructura de Sheets debe validarse antes de programar las pantallas.
+Este documento constituye la base funcional y técnica preliminar. La siguiente entrega debería ser el diccionario de datos definitivo y el diseño detallado de las operaciones de Apps Script.

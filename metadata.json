@@ -1,0 +1,6 @@
+{
+  "name": "FeSMC UGT CLM · Vacaciones y Ausencias",
+  "description": "Sistema de gestión de vacaciones, libre disposición, ausencias, calendarios laborales e informes históricos para el equipo de FeSMC UGT Castilla-La Mancha, sincronizado con Google Sheets y Google Drive.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
